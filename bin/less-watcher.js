@@ -87,7 +87,7 @@ if (!args.args['config'] && (!fs.existsSync(defaultConfigFilePath)
 
 // extend config by arguments
 var argsConfigs = {};
-for (var key in args.args) if (key !== 'config') argsConfigs[key] = args.args[key];
+for (var key in args.config) argsConfigs[key] = args.config[key];
 config.set(argsConfigs);
 
 config.validation();
@@ -180,7 +180,9 @@ function recompileCallback(filename) {
 
 compile(); // compile at start
 
-watch.createMonitor(stylesDir, function (monitor) {
+
+(!args.args['just_compile'])
+&& watch.createMonitor(stylesDir, function (monitor) {
     config.config['events'].forEach(function (event) {
         monitor.on(event, recompileCallback);
     });
