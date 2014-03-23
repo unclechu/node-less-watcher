@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: bin/less-watcher.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: bin/less-watcher.js</h1>
+
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>#!/usr/bin/env node
+/**
+ * @overview Automatically detecting changes in .less files and recompile styles.
+ * @module less-watcher
+ *
+ * @requires watch
+ * @requires less
+ *
+ * @see {@link https://github.com/unclechu/node-less-watcher|GitHub}
+ * @author Viacheslav Lotsmanov
+ * @license GPLv3
+ */
+
+var watch = require('watch');
+var less = require('less');
+var path = require('path');
+var fs = require('fs');
+
+// inner modules
+var Config = require('../lib/config');
+var Args = require('../lib/args');
+
+var args = new Args();
+
+var defaultConfigFilePath = 'less-watcher.config.json';
+
+/**
+ * @typedef {JSON} to_compile
+ * @prop {string} input_less Path to input .less file
+ * @prop {string} output_css Path to output compiled .css file
+ */
+/**
+ * @typedef {JSON} config
+ * @prop {string} [path=./styles/] Path to .less files directory
+ * @prop {Array.&lt;to_compile>} [to_compile={ "input_less": "main.less", "output_css": "compiled_styles.css" }]
+ * @prop {boolean} [compress=true] Minify output compiled .css file(s)
+ * @prop {boolean} [debug=true] Show messages about detecting changes of any .less files and about compiling
+ * @prop {Array.&lt;string>} [events="created", "changed", "removed"] Events for "watch" module
+ * @prop {Array.&lt;string>} [extensions=".less"] File extensions to watch
+ */
+var defaultConfig = {
+    "path": "./styles/",
+    "to_compile": [
+        { "input_less": "main.less", "output_css": "compiled_styles.css" }
+    ],
+    "compress": true,
+    "debug": true,
+    "events": [
+        "created",
+        "changed",
+        "removed"
+    ],
+    "extensions": [ ".less" ]
+};
+
+/**
+ * @private
+ * @returns {string} Current time stamp by format: "[%H:%i:%s]"
+ */
+function time() {
+    var date = new Date();
+    var hours = date.getHours().toString();
+    var minutes = date.getMinutes().toString();
+    var seconds = date.getSeconds().toString();
+    if (hours.length &lt; 2) hours = '0' + hours;
+    if (minutes.length &lt; 2) minutes = '0' + minutes;
+    if (seconds.length &lt; 2) seconds = '0' + seconds;
+    return hours +':'+ minutes +':'+ seconds;
+}
+
+var config = new Config(defaultConfig);
+
+if (!args.args['config'] &amp;&amp; (!fs.existsSync(defaultConfigFilePath)
+|| fs.statSync(defaultConfigFilePath).isDirectory())) {
+    console.warn('Configurations JSON file path is not set by argument'
+        +' and file by default value ("'+ defaultConfigFilePath
+        +'") is not exists.'
+        +'\nWill be used default configs:\n', defaultConfig);
+} else if (args.args['config']) {
+    config.loadFile(args.args['config']);
+} else {
+    if (fs.existsSync(defaultConfigFilePath)
+    &amp;&amp; !fs.statSync(defaultConfigFilePath).isDirectory()) {
+        config.loadFile(defaultConfigFilePath);
+    }
+}
+
+// extend config by arguments
+var argsConfigs = {};
+for (var key in args.args) if (key !== 'config') argsConfigs[key] = args.args[key];
+config.set(argsConfigs);
+
+config.validation();
+
+var stylesDir = path.join(process.cwd(), config.config['path']);
+
+var compileCounter = 0;
+
+/**
+ * Compile .less file and save to .css file logic
+ * @private
+ */
+function compile() {
+    compileCounter++;
+    config.config['to_compile'].forEach(function (val) {
+        var data;
+        var pathToLess = path.join(stylesDir, val['input_less']);
+        var pathToCSS = path.join(stylesDir, val['output_css']);
+
+        config.config['debug'] &amp;&amp; console.log(
+            'Compiling less "%s" to css "%s" (counter: %d) [%s]',
+            val['input_less'], val['output_css'], compileCounter, time()
+        );
+
+        try {
+            data = fs.readFileSync(pathToLess);
+        } catch (err) {
+            config.config['debug'] &amp;&amp; console.error(
+                'Read file error "%s" [%s]',
+                pathToLess, time()
+            );
+            return;
+        }
+
+        var parser = new(less.Parser)({ paths: [stylesDir] });
+        parser.parse(data.toString(), function (err, tree) {
+            if (err) {
+                config.config['debug'] &amp;&amp; console.error(
+                    'Compile .less file ("%s") error: "%s" [%s]',
+                    pathToLess, err.toString(), time()
+                );
+                return;
+            }
+
+            var outputCSS;
+            try {
+                outputCSS = tree.toCSS({ compress: config.config['compress'] });
+            } catch (err) {
+                config.config['debug'] &amp;&amp; console.error(
+                    'Compile .less file ("%s") error: "%s" [%s]',
+                    pathToLess, err.toString(), time()
+                );
+                return;
+            }
+
+            try {
+                fs.writeFileSync(pathToCSS, outputCSS);
+            } catch (err) {
+                config.config['debug'] &amp;&amp; console.error(
+                    'Write to file ("%s") error [%s]',
+                    pathToCSS, time()
+                );
+                return;
+            }
+
+            config.config['debug'] &amp;&amp; console.log(
+                'Compiled less "%s" to css "%s" (counter: %d) [%s]',
+                val['input_less'], val['output_css'], compileCounter, time()
+            );
+        });
+    });
+}
+
+/**
+ * Function will called for each event that in config key "events"
+ * @private
+ */
+function recompileCallback(filename) {
+    config.config['extensions'].every(function (ext) {
+        if (path.extname(filename) === ext) {
+            config.config['debug'] &amp;&amp; console.log(
+                'Catched! "%s" [%s]', filename, time()
+            );
+            compile();
+            return false;
+        }
+        return true;
+    });
+}
+
+compile(); // compile at start
+
+watch.createMonitor(stylesDir, function (monitor) {
+    config.config['events'].forEach(function (event) {
+        monitor.on(event, recompileCallback);
+    });
+    console.log(
+        'Started watcher for less files ("%s") in directory "%s" [%s]',
+        config.config['extensions'].join('", "'), stylesDir, time()
+    );
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-args.html">args</a></li><li><a href="module-config.html">config</a></li><li><a href="module-exceptions.html">exceptions</a></li><li><a href="module-less-watcher.html">less-watcher</a></li></ul><h3>Classes</h3><ul><li><a href="module-args-Args.html">Args</a></li><li><a href="module-config-Config.html">Config</a></li></ul><h3><a href="global.html">Global</a></h3>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Sun Mar 23 2014 19:03:45 GMT+0400 (MSK)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
