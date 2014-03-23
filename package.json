@@ -1,0 +1,28 @@
+{
+  "name": "less-watcher",
+  "version": "0.0.0",
+  "description": "Automatically detecting changes in .less files and recompile styles.",
+  "main": "lib/less-watcher.js",
+  "dependencies": {
+    "less": ">=1.7.0",
+    "watch": ">=0.9.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/unclechu/node-less-watcher.git"
+  },
+  "keywords": [
+    "less",
+    "watcher",
+    "watch",
+    "css",
+    "styles",
+    "compile"
+  ],
+  "author": "Viacheslav Lotsmanov",
+  "email": "lotsmanov89@gmail.com",
+  "license": "GPLv3"
+}
