@@ -9,12 +9,12 @@ Install
 Global
 ------
 
-    # npm install -g less-watcher
+    # npm install -g less-watcher2
 
 Local
 -----
 
-    $ npm install less-watcher
+    $ npm install less-watcher2
     $ ln -s node_modules/.bin/less-watcher
 
 Usage

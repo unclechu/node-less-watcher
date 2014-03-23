@@ -1,5 +1,5 @@
 {
-  "name": "less-watcher",
+  "name": "less-watcher2",
   "version": "0.1.0",
   "description": "Automatically detecting changes in .less files and recompile styles.",
   "main": "lib/less-watcher.js",
