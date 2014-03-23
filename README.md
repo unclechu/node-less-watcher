@@ -3,6 +3,8 @@ less-watcher
 
 Automatically detecting changes in [.less](http://lesscss.org/) files and recompile styles.
 
+[![NPM](https://nodei.co/npm/less-watcher2.png)](https://nodei.co/npm/less-watcher2/)
+
 Install
 =======
 
