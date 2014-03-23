@@ -7,6 +7,9 @@
     "less": ">=1.7.0",
     "watch": ">=0.9.0"
   },
+  "engines": {
+    "node": ">=0.10.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -22,7 +25,11 @@
     "styles",
     "compile"
   ],
+  "directories": {
+    "lib": "./lib",
+  },
   "author": "Viacheslav Lotsmanov",
   "email": "lotsmanov89@gmail.com",
+  "homepage": "https://github.com/unclechu/node-less-watcher",
   "license": "GPLv3"
 }
