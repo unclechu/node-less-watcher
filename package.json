@@ -17,19 +17,31 @@
     "type": "git",
     "url": "git://github.com/unclechu/node-less-watcher.git"
   },
+  "bugs": {
+    "url": "https://github.com/unclechu/node-less-watcher/issues"
+  },
   "keywords": [
     "less",
+    "less.js",
     "watcher",
     "watch",
     "css",
     "styles",
-    "compile"
+    "compile",
+    "compile less",
+    "css less"
   ],
   "directories": {
-    "lib": "./lib",
+    "bin": "./bin",
+    "lib": "./lib"
   },
-  "author": "Viacheslav Lotsmanov",
-  "email": "lotsmanov89@gmail.com",
+  "bin": {
+    "less-watcher": "./bin/less-watcher.js"
+  },
+  "author": {
+    "name": "Viacheslav Lotsmanov",
+    "email": "lotsmanov89@gmail.com"
+  },
   "homepage": "https://github.com/unclechu/node-less-watcher",
   "license": "GPLv3"
 }
