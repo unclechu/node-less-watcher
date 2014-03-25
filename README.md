@@ -25,11 +25,9 @@ Usage
 Show usage info
 ---------------
 
-Global install:
-    $ less-watcher --help
+Global install: `$ less-watcher --help`
 
-Local install:
-    $ ./less-watcher --help
+Local install: `$ ./less-watcher --help`
 
 Use config file
 ---------------
@@ -39,11 +37,9 @@ Copy [/examples/less-watcher.config.json](./examples/less-watcher.config.json) t
 Compile and exit (without watching)
 -----------------------------------
 
-Global install:
-    $ less-watcher --just-compile
+Global install: `$ less-watcher --just-compile`
 
-Local install:
-    $ ./less-watcher --just-compile
+Local install: `$ ./less-watcher --just-compile`
 
 Output
 ------
