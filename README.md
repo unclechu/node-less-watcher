@@ -17,7 +17,7 @@ Local
 -----
 
     $ npm install less-watcher2
-    $ ln -s node_modules/.bin/less-watcher
+    $ ln -s ./node_modules/.bin/less-watcher
 
 Usage
 =====
