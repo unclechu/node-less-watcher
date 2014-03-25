@@ -196,7 +196,6 @@ function recompileCallback(filename) {
 
 compile(); // compile at start
 
-
 (!args.args['just_compile'])
 && watch.createMonitor(stylesDir, function (monitor) {
     config.config['events'].forEach(function (event) {
