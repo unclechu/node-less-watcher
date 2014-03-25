@@ -13,8 +13,20 @@
 
 var watch = require('watch');
 var less = require('less');
+var colors = require('colors');
+
 var path = require('path');
 var fs = require('fs');
+var util = require('util');
+
+colors.setTheme({
+    info: 'green',
+    help: 'cyan',
+    data: 'grey',
+    catched: 'blue',
+    warn: 'yellow',
+    error: 'red'
+});
 
 // inner modules
 var Config = require('../lib/config');
@@ -72,10 +84,14 @@ var config = new Config(defaultConfig);
 
 if (!args.args['config'] && (!fs.existsSync(defaultConfigFilePath)
 || fs.statSync(defaultConfigFilePath).isDirectory())) {
-    console.warn('Configurations JSON file path is not set by argument'
+    console.warn(
+        ('Configurations JSON file path is not set by argument'
         +' and file by default value ("'+ defaultConfigFilePath
         +'") is not exists.'
-        +'\nWill be used default configs:\n', defaultConfig);
+
+        +'\nWill be used default configs:\n').warn,
+        util.inspect(defaultConfig).warn
+    );
 } else if (args.args['config']) {
     config.loadFile(args.args['config']);
 } else {
@@ -108,7 +124,7 @@ function compile() {
         var pathToCSS = path.join(stylesDir, val['output_css']);
 
         config.config['debug'] && console.log(
-            'Compiling less "%s" to css "%s" (counter: %d) [%s]',
+            'Compiling less "%s" to css "%s" (counter: %d) [%s]'.data,
             val['input_less'], val['output_css'], compileCounter, time()
         );
 
@@ -116,7 +132,7 @@ function compile() {
             data = fs.readFileSync(pathToLess);
         } catch (err) {
             config.config['debug'] && console.error(
-                'Read file error "%s" [%s]',
+                'Read file error "%s" [%s]'.error,
                 pathToLess, time()
             );
             return;
@@ -126,7 +142,7 @@ function compile() {
         parser.parse(data.toString(), function (err, tree) {
             if (err) {
                 config.config['debug'] && console.error(
-                    'Compile .less file ("%s") error: "%s" [%s]',
+                    'Compile .less file ("%s") error: "%s" [%s]'.error,
                     pathToLess, err.toString(), time()
                 );
                 return;
@@ -137,7 +153,7 @@ function compile() {
                 outputCSS = tree.toCSS({ compress: config.config['compress'] });
             } catch (err) {
                 config.config['debug'] && console.error(
-                    'Compile .less file ("%s") error: "%s" [%s]',
+                    'Compile .less file ("%s") error: "%s" [%s]'.error,
                     pathToLess, err.toString(), time()
                 );
                 return;
@@ -147,14 +163,14 @@ function compile() {
                 fs.writeFileSync(pathToCSS, outputCSS);
             } catch (err) {
                 config.config['debug'] && console.error(
-                    'Write to file ("%s") error [%s]',
+                    'Write to file ("%s") error [%s]'.error,
                     pathToCSS, time()
                 );
                 return;
             }
 
             config.config['debug'] && console.log(
-                'Compiled less "%s" to css "%s" (counter: %d) [%s]',
+                'Compiled less "%s" to css "%s" (counter: %d) [%s]'.info,
                 val['input_less'], val['output_css'], compileCounter, time()
             );
         });
@@ -169,7 +185,7 @@ function recompileCallback(filename) {
     config.config['extensions'].every(function (ext) {
         if (path.extname(filename) === ext) {
             config.config['debug'] && console.log(
-                'Catched! "%s" [%s]', filename, time()
+                'Catched! "%s" [%s]'.catched, filename, time()
             );
             compile();
             return false;
@@ -187,7 +203,7 @@ compile(); // compile at start
         monitor.on(event, recompileCallback);
     });
     console.log(
-        'Started watcher for less files ("%s") in directory "%s" [%s]',
+        'Started watcher for less files ("%s") in directory "%s" [%s]'.data,
         config.config['extensions'].join('", "'), stylesDir, time()
     );
 });
