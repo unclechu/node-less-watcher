@@ -123,7 +123,7 @@ function compile() {
             return;
         }
 
-        var parser = new(less.Parser)({ paths: [stylesDir] });
+        var parser = new(less.Parser)({ paths: [path.dirname(pathToLess)] });
         parser.parse(data.toString(), function (err, tree) {
             if (err) {
                 config.config['debug'] && console.error(
