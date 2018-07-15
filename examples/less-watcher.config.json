@@ -1,14 +1,19 @@
 {
-    "path": "./styles/",
-    "to_compile": [
-        { "input_less": "main.less", "output_css": "compiled_styles.css" }
-    ],
-    "compress": true,
-    "debug": true,
-    "events": [
-        "created",
-        "changed",
-        "removed"
-    ],
-    "extensions": [ ".less" ]
+  "path": "./styles/",
+  "to_compile": [
+    {
+      "input_less": "main.less",
+      "output_css": "compiled_styles.css"
+    }
+  ],
+  "compress": true,
+  "debug": true,
+  "events": [
+    "changed",
+    "created",
+    "removed"
+  ],
+  "extensions": [
+    ".less"
+  ]
 }
