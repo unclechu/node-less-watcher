@@ -9,8 +9,8 @@
   "compress": true,
   "debug": true,
   "events": [
-    "changed",
     "created",
+    "changed",
     "removed"
   ],
   "extensions": [

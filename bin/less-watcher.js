@@ -17,7 +17,6 @@ var colors = require('colors');
 
 var path = require('path');
 var fs = require('fs');
-var util = require('util');
 
 colors.setTheme({
     info: 'green',
@@ -50,20 +49,7 @@ var defaultConfigFilePath = 'less-watcher.config.json';
  * @prop {Array.<string>} [events="created", "changed", "removed"] Events for "watch" module
  * @prop {Array.<string>} [extensions=".less"] File extensions to watch
  */
-var defaultConfig = {
-    "path": "./styles/",
-    "to_compile": [
-        { "input_less": "main.less", "output_css": "compiled_styles.css" }
-    ],
-    "compress": true,
-    "debug": true,
-    "events": [
-        "created",
-        "changed",
-        "removed"
-    ],
-    "extensions": [ ".less" ]
-};
+var defaultConfig = require('../examples/less-watcher.config.json');
 
 /**
  * @private
@@ -86,11 +72,10 @@ if (!args.args['config'] && (!fs.existsSync(defaultConfigFilePath)
 || fs.statSync(defaultConfigFilePath).isDirectory())) {
     console.warn(
         ('Configurations JSON file path is not set by argument'
-        +' and file by default value ("'+ defaultConfigFilePath
-        +'") is not exists.'
+        +' and file by default value ("'+ defaultConfigFilePath +'") is not exists.'
 
-        +'\nWill be used default configs:\n').warn,
-        util.inspect(defaultConfig).warn
+        +'\nWill be used default configs:\n').warn
+        +('  '+JSON.stringify(defaultConfig, null, 2).replace(/\n/g, '\n  ')).warn
     );
 } else if (args.args['config']) {
     config.loadFile(args.args['config']);

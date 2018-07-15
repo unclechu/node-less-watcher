@@ -48,12 +48,25 @@ Output
     $ less-watcher
     Configurations JSON file path is not set by argument and file by default value ("less-watcher.config.json") is not exists.
     Will be used default configs:
-     { path: './styles/',
-      to_compile: [ { input_less: 'main.less', output_css: 'compiled_styles.css' } ],
-      compress: true,
-      debug: true,
-      events: [ 'created', 'changed', 'removed' ],
-      extensions: [ '.less' ] }
+      {
+        "path": "./styles/",
+        "to_compile": [
+          {
+            "input_less": "main.less",
+            "output_css": "compiled_styles.css"
+          }
+        ],
+        "compress": true,
+        "debug": true,
+        "events": [
+          "created",
+          "changed",
+          "removed"
+        ],
+        "extensions": [
+          ".less"
+        ]
+      }
     Compiling less "main.less" to css "compiled_styles.css" (counter: 1) [20:13:01]
     Started watcher for less files (".less") in directory ".../styles/" [20:13:01]
     Compiled less "main.less" to css "compiled_styles.css" (counter: 1) [20:13:02]
