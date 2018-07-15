@@ -1,7 +1,7 @@
 less-watcher
 ============
 
-Automatically detecting changes in [.less](http://lesscss.org/) files and recompile styles.
+Automatically detecting changes in [.less](http://lesscss.org/) files and recompiling styles.
 
 [![NPM](https://nodei.co/npm/less-watcher2.png)](https://nodei.co/npm/less-watcher2/)
 
@@ -32,7 +32,8 @@ Local install: `$ ./less-watcher --help`
 Use config file
 ---------------
 
-Copy [/examples/less-watcher.config.json](./examples/less-watcher.config.json) to work dir and modify it.
+Copy [/examples/less-watcher.config.json](./examples/less-watcher.config.json)
+to your working directory and modify it.
 
 Compile and exit (without watching)
 -----------------------------------
@@ -44,7 +45,7 @@ Local install: `$ ./less-watcher --just-compile`
 Output
 ------
 
-    $ less-watcher 
+    $ less-watcher
     Configurations JSON file path is not set by argument and file by default value ("less-watcher.config.json") is not exists.
     Will be used default configs:
      { path: './styles/',
