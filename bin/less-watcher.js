@@ -95,6 +95,47 @@ config.validation();
 
 var stylesDir = path.join(process.cwd(), config.config['path']);
 
+/**
+ * If output CSS directories don't exist create them
+ * (including their parents).
+ * @private
+ */
+function createNotExistingOutputDirectories() {
+    config.config['to_compile'].forEach(function (val) {
+        var dir = path.dirname(path.join(stylesDir, val['output_css']));
+        var toCreate = [];
+        var stat;
+
+        while (dir !== null) {
+            try {
+                stat = fs.lstatSync(dir);
+            } catch (e) {
+                if (e.code !== 'ENOENT') throw e;
+                toCreate.unshift(dir);
+                dir = path.dirname(dir);
+                continue;
+            }
+
+            if (stat.isDirectory()) {
+                break;
+            } else {
+                console.error(
+                    ('Output path "%s" exists but it is not a directory! '
+                    +'Rename or remove it first.').error, dir
+                );
+                process.exit(1);
+            }
+        }
+
+        toCreate.forEach(function (x) {
+            config.config['debug'] && console.log(
+                'Creating output CSS directory "%s"... [%s]'.data, x, time()
+            );
+            fs.mkdirSync(x);
+        });
+    });
+}
+
 var compileCounter = 0;
 
 /**
@@ -187,6 +228,7 @@ function recompileCallback(filename) {
     });
 }
 
+createNotExistingOutputDirectories();
 compile(); // compile at start
 
 (!args.args['just_compile'])
