@@ -1,6 +1,6 @@
 {
   "name": "less-watcher2",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Automatically detecting changes in .less files and recompiling styles",
   "main": "bin/less-watcher.js",
   "dependencies": {
