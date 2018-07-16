@@ -21,7 +21,7 @@ var fs = require('fs');
 colors.setTheme({
     info: 'green',
     help: 'cyan',
-    data: 'grey',
+    data: 'italic',
     catched: 'blue',
     warn: 'yellow',
     error: 'red'
