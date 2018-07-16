@@ -22,6 +22,7 @@
     
 
 
+
     
     <section>
         <article>
@@ -40,8 +41,19 @@
 
 var watch = require('watch');
 var less = require('less');
+var colors = require('colors');
+
 var path = require('path');
 var fs = require('fs');
+
+colors.setTheme({
+    info: 'green',
+    help: 'cyan',
+    data: 'italic',
+    catched: 'blue',
+    warn: 'yellow',
+    error: 'red'
+});
 
 // inner modules
 var Config = require('../lib/config');
@@ -65,20 +77,7 @@ var defaultConfigFilePath = 'less-watcher.config.json';
  * @prop {Array.&lt;string>} [events="created", "changed", "removed"] Events for "watch" module
  * @prop {Array.&lt;string>} [extensions=".less"] File extensions to watch
  */
-var defaultConfig = {
-    "path": "./styles/",
-    "to_compile": [
-        { "input_less": "main.less", "output_css": "compiled_styles.css" }
-    ],
-    "compress": true,
-    "debug": true,
-    "events": [
-        "created",
-        "changed",
-        "removed"
-    ],
-    "extensions": [ ".less" ]
-};
+var defaultConfig = require('../examples/less-watcher.config.json');
 
 /**
  * @private
@@ -99,10 +98,13 @@ var config = new Config(defaultConfig);
 
 if (!args.args['config'] &amp;&amp; (!fs.existsSync(defaultConfigFilePath)
 || fs.statSync(defaultConfigFilePath).isDirectory())) {
-    console.warn('Configurations JSON file path is not set by argument'
-        +' and file by default value ("'+ defaultConfigFilePath
-        +'") is not exists.'
-        +'\nWill be used default configs:\n', defaultConfig);
+    console.warn(
+        ('Configurations JSON file path is not set by argument'
+        +' and file by default value ("'+ defaultConfigFilePath +'") is not exists.'
+
+        +'\nWill be used default configs:\n').warn
+        +('  '+JSON.stringify(defaultConfig, null, 2).replace(/\n/g, '\n  ')).warn
+    );
 } else if (args.args['config']) {
     config.loadFile(args.args['config']);
 } else {
@@ -114,12 +116,53 @@ if (!args.args['config'] &amp;&amp; (!fs.existsSync(defaultConfigFilePath)
 
 // extend config by arguments
 var argsConfigs = {};
-for (var key in args.args) if (key !== 'config') argsConfigs[key] = args.args[key];
+for (var key in args.config) argsConfigs[key] = args.config[key];
 config.set(argsConfigs);
 
 config.validation();
 
 var stylesDir = path.join(process.cwd(), config.config['path']);
+
+/**
+ * If output CSS directories don't exist create them
+ * (including their parents).
+ * @private
+ */
+function createNotExistingOutputDirectories() {
+    config.config['to_compile'].forEach(function (val) {
+        var dir = path.dirname(path.join(stylesDir, val['output_css']));
+        var toCreate = [];
+        var stat;
+
+        while (dir !== null) {
+            try {
+                stat = fs.lstatSync(dir);
+            } catch (e) {
+                if (e.code !== 'ENOENT') throw e;
+                toCreate.unshift(dir);
+                dir = path.dirname(dir);
+                continue;
+            }
+
+            if (stat.isDirectory()) {
+                break;
+            } else {
+                console.error(
+                    ('Output path "%s" exists but it is not a directory! '
+                    +'Rename or remove it first.').error, dir
+                );
+                process.exit(1);
+            }
+        }
+
+        toCreate.forEach(function (x) {
+            config.config['debug'] &amp;&amp; console.log(
+                'Creating output CSS directory "%s"... [%s]'.data, x, time()
+            );
+            fs.mkdirSync(x);
+        });
+    });
+}
 
 var compileCounter = 0;
 
@@ -135,7 +178,7 @@ function compile() {
         var pathToCSS = path.join(stylesDir, val['output_css']);
 
         config.config['debug'] &amp;&amp; console.log(
-            'Compiling less "%s" to css "%s" (counter: %d) [%s]',
+            'Compiling less "%s" to css "%s" (counter: %d) [%s]'.data,
             val['input_less'], val['output_css'], compileCounter, time()
         );
 
@@ -143,46 +186,54 @@ function compile() {
             data = fs.readFileSync(pathToLess);
         } catch (err) {
             config.config['debug'] &amp;&amp; console.error(
-                'Read file error "%s" [%s]',
-                pathToLess, time()
+                'Read file error ("%s") error: "%s" [%s]'.error,
+                pathToLess, err.toString(), time()
             );
             return;
         }
 
-        var parser = new(less.Parser)({ paths: [stylesDir] });
-        parser.parse(data.toString(), function (err, tree) {
+        less.render(data.toString(), {
+            paths: [path.dirname(pathToLess)],
+            compress: config.config['compress']
+        }, function (err, result) {
             if (err) {
                 config.config['debug'] &amp;&amp; console.error(
-                    'Compile .less file ("%s") error: "%s" [%s]',
+                    'Compile .less file ("%s") error: "%s" [%s]'.error,
                     pathToLess, err.toString(), time()
                 );
                 return;
             }
 
-            var outputCSS;
-            try {
-                outputCSS = tree.toCSS({ compress: config.config['compress'] });
-            } catch (err) {
+            var css;
+            // less v1.x
+            if (typeof result === 'string')
+                css = result;
+            // less v2.x and v3.x
+            else if (typeof result === 'object' &amp;&amp; typeof result.css === 'string')
+                css = result.css;
+            else {
                 config.config['debug'] &amp;&amp; console.error(
-                    'Compile .less file ("%s") error: "%s" [%s]',
-                    pathToLess, err.toString(), time()
+                    'Compile .less file ("%s") error: "%s" [%s]'.error,
+                    pathToLess,
+                    new Error('Unexpected less.js "render" result type'),
+                    time()
                 );
                 return;
             }
 
             try {
-                fs.writeFileSync(pathToCSS, outputCSS);
+                fs.writeFileSync(pathToCSS, css);
             } catch (err) {
                 config.config['debug'] &amp;&amp; console.error(
-                    'Write to file ("%s") error [%s]',
-                    pathToCSS, time()
+                    'Write to file ("%s") error: "%s" [%s]'.error,
+                    pathToCSS, err.toString(), time()
                 );
                 return;
             }
 
             config.config['debug'] &amp;&amp; console.log(
-                'Compiled less "%s" to css "%s" (counter: %d) [%s]',
-                val['input_less'], val['output_css'], compileCounter, time()
+                'Compiled less "%s" to css "%s" (counter: %d) [%s]'.info,
+                pathToLess, pathToCSS, compileCounter, time()
             );
         });
     });
@@ -196,7 +247,7 @@ function recompileCallback(filename) {
     config.config['extensions'].every(function (ext) {
         if (path.extname(filename) === ext) {
             config.config['debug'] &amp;&amp; console.log(
-                'Catched! "%s" [%s]', filename, time()
+                'Catched! "%s" [%s]'.catched, filename, time()
             );
             compile();
             return false;
@@ -205,14 +256,16 @@ function recompileCallback(filename) {
     });
 }
 
+createNotExistingOutputDirectories();
 compile(); // compile at start
 
-watch.createMonitor(stylesDir, function (monitor) {
+(!args.args['just_compile'])
+&amp;&amp; watch.createMonitor(stylesDir, function (monitor) {
     config.config['events'].forEach(function (event) {
         monitor.on(event, recompileCallback);
     });
     console.log(
-        'Started watcher for less files ("%s") in directory "%s" [%s]',
+        'Started watcher for less files ("%s") in directory "%s" [%s]'.data,
         config.config['extensions'].join('", "'), stylesDir, time()
     );
 });
@@ -226,13 +279,13 @@ watch.createMonitor(stylesDir, function (monitor) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-args.html">args</a></li><li><a href="module-config.html">config</a></li><li><a href="module-exceptions.html">exceptions</a></li><li><a href="module-less-watcher.html">less-watcher</a></li></ul><h3>Classes</h3><ul><li><a href="module-args-Args.html">Args</a></li><li><a href="module-config-Config.html">Config</a></li></ul><h3><a href="global.html">Global</a></h3>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-args.html">args</a></li><li><a href="module-config.html">config</a></li><li><a href="module-exceptions.html">exceptions</a></li><li><a href="module-less-watcher.html">less-watcher</a></li></ul><h3>Classes</h3><ul><li><a href="module-args-Args.html">Args</a></li><li><a href="module-config-Config.html">Config</a></li></ul>
 </nav>
 
-<br clear="both">
+<br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Sun Mar 23 2014 19:03:45 GMT+0400 (MSK)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Jul 16 2018 20:54:45 GMT+0500 (+05)
 </footer>
 
 <script> prettyPrint(); </script>

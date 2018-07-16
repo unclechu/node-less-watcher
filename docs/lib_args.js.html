@@ -22,6 +22,7 @@
     
 
 
+
     
     <section>
         <article>
@@ -73,6 +74,9 @@ USAGE\n\
     File extensions to watch\n\
     Example by default value: --extensions=.less\n\
     Example: --extensions=.less,.lesscss\n\
+\n\
+--just-compile\n\
+    Do not watching, just compile styles.\n\
 ';
 
 /**
@@ -89,7 +93,18 @@ function Args() {
      * @instance
      * @type {config}
      */
-    this.args = {};
+    this.config = {};
+
+    /**
+     * @public
+     * @readOnly
+     * @instance
+     * @type {Object.&lt;*>}
+     */
+    this.args = {
+        'config': undefined,
+        'just_compile': false
+    };
 
     process.argv.slice(2).forEach(function (arg) {
         var val;
@@ -106,7 +121,7 @@ function Args() {
         } else if (/^--path=/.test(arg)) {
             val = arg.substr('--path='.length);
             if (val === '') emptyArgValue('path');
-            self.args['path'] = val;
+            self.config['path'] = val;
 
         } else if (/^--to-compile=/.test(arg)) {
             val = arg.substr('--to-compile='.length);
@@ -121,52 +136,54 @@ function Args() {
                     output_css: split[1]
                 });
             });
-            console.log(list);
-            self.args['to_compile'] = list;
+            self.config['to_compile'] = list;
 
         } else if (/^--compress$/.test(arg)) {
-            self.args['compress'] = true;
+            self.config['compress'] = true;
         } else if (/^--compress=/.test(arg)) {
             val = arg.substr('--compress='.length);
             if (val === '') emptyArgValue('compress');
             val = val.toLowerCase();
             if (val === 'y' || val === 'yes' || val === '1' || val === 'true') {
-                self.args['compress'] = true;
+                self.config['compress'] = true;
             } else if (val === 'n' || val === 'no' || val === '0' || val === 'false') {
-                self.args['compress'] = false;
+                self.config['compress'] = false;
             } else incorrectArgValue('compress');
 
         } else if (/^--debug$/.test(arg)) {
-            self.args['debug'] = true;
+            self.config['debug'] = true;
         } else if (/^--debug/.test(arg)) {
             val = arg.substr('--debug='.length);
             if (val === '') emptyArgValue('debug');
             val = val.toLowerCase();
             if (val === 'y' || val === 'yes' || val === '1' || val === 'true') {
-                self.args['debug'] = true;
+                self.config['debug'] = true;
             } else if (val === 'n' || val === 'no' || val === '0' || val === 'false') {
-                self.args['debug'] = false;
+                self.config['debug'] = false;
             } else incorrectArgValue('debug');
 
         } else if (/^--events=/.test(arg)) {
             val = arg.substr('--events='.length);
             if (val === '') emptyArgValue('events');
             val = val.split(',');
-            self.args['events'] = val;
+            self.config['events'] = val;
 
         } else if (/^--extensions=/.test(arg)) {
             val = arg.substr('--extensions='.length);
             if (val === '') emptyArgValue('extensions');
             val = val.split(',');
-            self.args['extensions'] = val;
+            self.config['extensions'] = val;
+
+        } else if (/^--just-compile$/.test(arg)) {
+            self.args['just_compile'] = true;
 
         // help info
         } else if (/^--help$/.test(arg) || /^-h$/.test(arg)) {
-            console.log(usageInfo);
+            console.log(usageInfo.info);
             process.exit(0);
         } else {
-            console.error('Unknown argument "'+ arg +'".');
-            console.log(usageInfo);
+            console.error(('Unknown argument "'+ arg +'".').error);
+            console.log(usageInfo.info);
             process.exit(1);
         }
     });
@@ -179,8 +196,8 @@ function Args() {
  * @memberOf Args
  */
 function emptyArgValue(argName) {
-    console.error('Empty "--'+ argName +'=" argument value.');
-    console.log(usageInfo);
+    console.error(('Empty "--'+ argName +'=" argument value.').error);
+    console.log(usageInfo.info);
     process.exit(1);
 }
 
@@ -191,8 +208,8 @@ function emptyArgValue(argName) {
  * @memberOf Args
  */
 function incorrectArgValue(argName) {
-    console.error('Incorrect "--'+ argName +'=" argument value.');
-    console.log(usageInfo);
+    console.error(('Incorrect "--'+ argName +'=" argument value.').error);
+    console.log(usageInfo.info);
     process.exit(1);
 }
 
@@ -208,13 +225,13 @@ module.exports = Args;
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-args.html">args</a></li><li><a href="module-config.html">config</a></li><li><a href="module-exceptions.html">exceptions</a></li><li><a href="module-less-watcher.html">less-watcher</a></li></ul><h3>Classes</h3><ul><li><a href="module-args-Args.html">Args</a></li><li><a href="module-config-Config.html">Config</a></li></ul><h3><a href="global.html">Global</a></h3>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-args.html">args</a></li><li><a href="module-config.html">config</a></li><li><a href="module-exceptions.html">exceptions</a></li><li><a href="module-less-watcher.html">less-watcher</a></li></ul><h3>Classes</h3><ul><li><a href="module-args-Args.html">Args</a></li><li><a href="module-config-Config.html">Config</a></li></ul>
 </nav>
 
-<br clear="both">
+<br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Sun Mar 23 2014 19:03:45 GMT+0400 (MSK)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Jul 16 2018 20:54:45 GMT+0500 (+05)
 </footer>
 
 <script> prettyPrint(); </script>
