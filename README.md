@@ -32,7 +32,7 @@ Local install: `$ ./less-watcher --help`
 Use config file
 ---------------
 
-Copy [/examples/less-watcher.config.json](./examples/less-watcher.config.json)
+Copy [examples/less-watcher.config.json](examples/less-watcher.config.json)
 to your working directory and modify it.
 
 Compile and exit (without watching)
@@ -77,9 +77,14 @@ Output
 Documentation
 =============
 
-See [/docs](./docs/) for automatically generated documentation by [JSDoc](http://usejsdoc.org/) utility.
+See [docs](docs/) for automatically generated documentation by [JSDoc](http://usejsdoc.org/) utility.
 
 Generation
 ----------
 
     $ jsdoc bin/* lib/* -p -d docs
+
+License
+=======
+
+[GPLv3](LICENSE)
