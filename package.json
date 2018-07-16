@@ -4,7 +4,7 @@
   "description": "Automatically detecting changes in .less files and recompiling styles",
   "main": "bin/less-watcher.js",
   "dependencies": {
-    "less": ">=1.7.0",
+    "less": ">=1.2.0",
     "watch": ">=0.9.0",
     "colors": ">=0.6.2"
   },

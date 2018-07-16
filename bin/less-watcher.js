@@ -117,14 +117,16 @@ function compile() {
             data = fs.readFileSync(pathToLess);
         } catch (err) {
             config.config['debug'] && console.error(
-                'Read file error "%s" [%s]'.error,
-                pathToLess, time()
+                'Read file error ("%s") error: "%s" [%s]'.error,
+                pathToLess, err.toString(), time()
             );
             return;
         }
 
-        var parser = new(less.Parser)({ paths: [path.dirname(pathToLess)] });
-        parser.parse(data.toString(), function (err, tree) {
+        less.render(data.toString(), {
+            paths: [path.dirname(pathToLess)],
+            compress: config.config['compress']
+        }, function (err, result) {
             if (err) {
                 config.config['debug'] && console.error(
                     'Compile .less file ("%s") error: "%s" [%s]'.error,
@@ -133,30 +135,36 @@ function compile() {
                 return;
             }
 
-            var outputCSS;
-            try {
-                outputCSS = tree.toCSS({ compress: config.config['compress'] });
-            } catch (err) {
+            var css;
+            // less v1.x
+            if (typeof result === 'string')
+                css = result;
+            // less v2.x and v3.x
+            else if (typeof result === 'object' && typeof result.css === 'string')
+                css = result.css;
+            else {
                 config.config['debug'] && console.error(
                     'Compile .less file ("%s") error: "%s" [%s]'.error,
-                    pathToLess, err.toString(), time()
+                    pathToLess,
+                    new Error('Unexpected less.js "render" result type'),
+                    time()
                 );
                 return;
             }
 
             try {
-                fs.writeFileSync(pathToCSS, outputCSS);
+                fs.writeFileSync(pathToCSS, css);
             } catch (err) {
                 config.config['debug'] && console.error(
-                    'Write to file ("%s") error [%s]'.error,
-                    pathToCSS, time()
+                    'Write to file ("%s") error: "%s" [%s]'.error,
+                    pathToCSS, err.toString(), time()
                 );
                 return;
             }
 
             config.config['debug'] && console.log(
                 'Compiled less "%s" to css "%s" (counter: %d) [%s]'.info,
-                val['input_less'], val['output_css'], compileCounter, time()
+                pathToLess, pathToCSS, compileCounter, time()
             );
         });
     });

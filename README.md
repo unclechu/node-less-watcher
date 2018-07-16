@@ -5,6 +5,11 @@ Automatically detecting changes in [.less](http://lesscss.org/) files and recomp
 
 [![NPM](https://nodei.co/npm/less-watcher2.png)](https://nodei.co/npm/less-watcher2/)
 
+About less.js dependency
+------------------------
+
+Supported versions are: `1.2.0` and higher (`3.7.1` was last tested).
+
 Install
 =======
 
